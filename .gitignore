@@ -1,5 +1,7 @@
 # Directories
 .vs/
+Build
+x*
 
 # Files
 *.vcxproj
