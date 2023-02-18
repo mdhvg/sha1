@@ -9,7 +9,7 @@ SHA1::SHA1() {
 	t = 0;
 }
 
-unsigned int *SHA1::update(unsigned char *message) {
+unsigned int* SHA1::update(unsigned char* message) {
 	Wn = (unsigned int*)message;
 	while (t < 80) {
 		oneRound();
@@ -35,7 +35,7 @@ void SHA1::oneRound() {
 	C = circularLeftShift(B, 30);
 	B = A;
 	A = temp;
-	std::cout << std::hex << std::setw(9) << A << ' ' << std::setw(9) << B << ' ' << std::setw(9) << C << ' ' << std::setw(9) << D << ' ' << std::setw(9) << E << ' ' << std::setw(9) << t << ' ' << std::setw(9) << quarter << std::endl;
+	//std::cout << std::hex << std::setw(9) << A << ' ' << std::setw(9) << B << ' ' << std::setw(9) << C << ' ' << std::setw(9) << D << ' ' << std::setw(9) << E << ' ' << std::setw(9) << t << ' ' << std::setw(9) << quarter << std::endl;
 }
 
 unsigned int SHA1::bitWiseFunction(unsigned int B, unsigned int C, unsigned int D) {
@@ -49,8 +49,6 @@ unsigned int SHA1::bitWiseFunction(unsigned int B, unsigned int C, unsigned int 
 		return ((B & C) | (B & D) | (C & D));
 	case 3:
 		return (B ^ C ^ D);
-	default:
-		break;
 	}
 }
 

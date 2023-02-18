@@ -7,45 +7,11 @@ Message::Message(char* input) {
 		initSize++;
 	}
 
+	// Measuring number of 512 bit message blocks needed
 	numBlocks = (initSize + 8 + MESSAGE_SIZE) / MESSAGE_SIZE;
 
+	// Pass input as member variable
 	this->input = input;
-
-
-	/*
-
-	***REMOVE***
-
-
-
-
-
-	// Make size of string array as needed while adding 1 byte for padding and 8 bytes for initial length
-	stringsLen = (size + MESSAGE_SIZE + 8) / MESSAGE_SIZE;
-	strings = new char* [stringsLen];
-
-	// Copy string into chunks of 512 bit (64 byte) char arrays
-	int chunkNum = 0, currentByte = 0;
-	for (chunkNum = 0; chunkNum < stringsLen; chunkNum++) {
-		strings[chunkNum] = new char[MESSAGE_SIZE];
-		for (currentByte = chunkNum * MESSAGE_SIZE; currentByte < (MESSAGE_SIZE * (chunkNum + 1)); currentByte++) {
-			if (currentByte >= size) {
-				break;
-			}
-			strings[chunkNum][currentByte] = input[currentByte];
-		}
-	}
-
-	// Add extra 0x80 byte
-	strings[chunkNum][currentByte] = 0x80;
-
-
-
-
-
-
-
-	*/
 }
 Message::Message(char* filename, bool isFile) {
 	if (!isFile) {
@@ -53,54 +19,53 @@ Message::Message(char* filename, bool isFile) {
 	}
 
 	// Opening file
-	std::ifstream file(filename, std::ios::binary);
+	file.open(filename, std::ios::binary);
 	if (!file.is_open()) {
 		std::cerr << "Error Opening file: " << filename << std::endl;
+		throw NO_FILE_ERROR;
 	}
+	else {
+		// Measuring size
+		file.seekg(0, std::ios::end);
+		initSize = file.tellg();
+		file.seekg(0);
 
-	// Measuring size
-	file.seekg(0, std::ios::end);
-	initSize = file.tellg();
-	file.seekg(0, std::ios::beg);
-
-	this->isFile = isFile;
+		// Measuring number of 512 bit message blocks needed 
+		numBlocks = (initSize + 8 + MESSAGE_SIZE) / MESSAGE_SIZE;
+		this->isFile = isFile;
+	}
 }
 
 void Message::formatMessage() {
-	if (currentBlock == numBlocks) {
-		for (int currentChar = initSize % MESSAGE_SIZE; currentChar < MESSAGE_SIZE; currentChar++) {
+	// After initial message ends, fill the rest of string with zeroes
+	if (currentBlock == numBlocks - 1) {
+		for (int currentChar = (initSize % MESSAGE_SIZE); currentChar < MESSAGE_SIZE; currentChar++) {
 			string[currentChar] = 0;
 		}
+
+		// Set nth bit as 1
 		string[initSize % MESSAGE_SIZE] = 0x80;
-		unsigned char* initSizeCharArray = (unsigned char*)initSize;
+
+		// Set last 64 bits as initial message size
+		unsigned long long int initSizeBytes = initSize * 8;
+		unsigned char* initSizeCharArray = (unsigned char*)&initSizeBytes;
 		for (int i = 0; i < sizeof(unsigned long long int); i++) {
 			string[MESSAGE_SIZE - 1 - i] = initSizeCharArray[i];
 		}
 	}
-	littleToBigEndian(string);
-}
 
-void Message::littleToBigEndian(unsigned char* block) {
-	int j, temp;
-	for (int i = 0; i < MESSAGE_SIZE; i += 4) {
-		j = i + 3;
-		while (i < j) {
-			temp = block[i];
-			block[i] = block[j];
-			block[j] = temp;
-			i++; j--;
-		}
-	}
+	// Reverse the message in sets of 4 bytes to fix reversed cast in little endian systems
+	littleToBigEndian(string, MESSAGE_SIZE);
 }
 
 unsigned char* Message::getBlock() {
-	if (isFile) {
+	if (this->isFile) {
 		file.read((char*)string, MESSAGE_SIZE);
 		formatMessage();
+		currentBlock++;
 	}
 	else {
-		int currentChar;
-		for (currentChar = currentBlock * MESSAGE_SIZE; currentChar < MESSAGE_SIZE * (currentBlock + 1); currentChar++) {
+		for (int currentChar = currentBlock * MESSAGE_SIZE; currentChar < MESSAGE_SIZE * (currentBlock + 1); currentChar++) {
 			if (currentChar < initSize) {
 				string[currentChar - (currentBlock * MESSAGE_SIZE)] = input[currentChar];
 			}
