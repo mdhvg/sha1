@@ -8,6 +8,10 @@
 #define ASCII_ZERO 48
 #define ASCII_SMALL_A 97
 
+#ifdef DEBUG
+#define PRINT(x) std::cout << x
+#endif // DEBUG
+
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -15,42 +19,6 @@
 /*
 	Implementation details can be found in https://nvlpubs.nist.gov/nistpubs/Legacy/FIPS/fipspub180-1.pdf
 */
-
-// Creates SHA1 context
-class SHA1 {
-public:
-
-	/*
-	Variables:
-		int t,																			: Round counter
-			s,																			: 512 bit word list index
-			quarter;																	: Round counter to select bitwise function for every iteration
-		unsigned int *Kt,																: SHA-1 constants
-					 *Hn,																: Initial message digest
-					 *Wn,																: 32-bit word array for each block
-					 temp,																: Intermediate temporary variable used in iterations
-					 A, B, C, D, E;														: Intermediate digest state variables
-
-	Functions:
-		SHA1();																			: Constructor to set initial values for SHA-1 constants
-		unsigned int* update(unsigned char* Message);									: Performs 1 iteration and updates digest
-		unsigned int circularLeftShift(unsigned int num, int shift);					: Performs circular shift
-		unsigned int bitWiseFunction(unsigned int B, unsigned int C, unsigned int D);	: Performs bitwise function according to current iteration quarter on B,C,D
-		unsigned char* digestString();
-		unsigned char getHexChar(unsigned int charInt);
-		void oneRound();																: Performs one round of 80 on input block
-	*/
-
-	int t, s, quarter;
-	unsigned int* Kt, * Hn, * Wn, temp, A, B, C, D, E;
-
-	SHA1();
-
-	unsigned int* update(unsigned char* Message);
-	unsigned int circularLeftShift(unsigned int num, int shift);
-	unsigned int bitWiseFunction(unsigned int B, unsigned int C, unsigned int D);
-	void oneRound();
-};
 
 // Forms message chunks required for SHA1
 class Message {
@@ -85,6 +53,47 @@ public:
 
 	void formatMessage();
 	unsigned char* getBlock();
+	bool hasNextBlock();
+};
+
+// Creates SHA1 context
+class SHA1 {
+public:
+
+	/*
+	Variables:
+		int t,																			: Round counter
+			s,																			: 512 bit word list index
+			quarter;																	: Round counter to select bitwise function for every iteration
+		unsigned int *Kt,																: SHA-1 constants
+					 *Hn,																: Initial message digest
+					 *Wn,																: 32-bit word array for each block
+					 temp,																: Intermediate temporary variable used in iterations
+					 A, B, C, D, E;														: Intermediate digest state variables
+
+	Functions:
+		SHA1();																			: Constructor to set initial values for SHA-1 constants
+		unsigned int* update(unsigned char* Message);									: Performs 1 iteration and updates digest
+		unsigned int circularLeftShift(unsigned int num, int shift);					: Performs circular shift
+		unsigned int bitWiseFunction(unsigned int B, unsigned int C, unsigned int D);	: Performs bitwise function according to current iteration quarter on B,C,D
+		unsigned char* digestString();
+		unsigned char getHexChar(unsigned int charInt);
+		void oneRound();																: Performs one round of 80 on input block
+	*/
+
+	int t, s, quarter;
+	unsigned int* Kt, * Hn, * Wn, temp, A, B, C, D, E;
+	Message *message = nullptr;
+
+	SHA1(Message *message);
+
+	void resetState();
+	void createDigest();
+	void update();
+	unsigned int* getDigest();
+	unsigned int circularLeftShift(unsigned int num, int shift);
+	unsigned int bitWiseFunction(unsigned int B, unsigned int C, unsigned int D);
+	void oneRound();
 };
 
 // Reverses a word stored in little endian format to big endian for parsing correctly

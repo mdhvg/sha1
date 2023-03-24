@@ -37,14 +37,14 @@ Message::Message(char* filename, bool isFile) {
 }
 
 void Message::formatMessage() {
+
+	// Set nth bit as 1
+	if (currentBlock == initSize / MESSAGE_SIZE) {
+		string[initSize % MESSAGE_SIZE] = 0x80;
+	}
+
 	// After initial message ends, fill the rest of string with zeroes
 	if (currentBlock == numBlocks - 1) {
-		for (int currentChar = (initSize % MESSAGE_SIZE); currentChar < MESSAGE_SIZE; currentChar++) {
-			string[currentChar] = 0;
-		}
-
-		// Set nth bit as 1
-		string[initSize % MESSAGE_SIZE] = 0x80;
 
 		// Set last 64 bits as initial message size
 		unsigned long long int initSizeBytes = initSize * 8;
@@ -59,22 +59,24 @@ void Message::formatMessage() {
 }
 
 unsigned char* Message::getBlock() {
-	if (this->isFile) {
-		file.read((char*)string, MESSAGE_SIZE);
-		formatMessage();
-		currentBlock++;
-	}
-	else {
-		for (int currentChar = currentBlock * MESSAGE_SIZE; currentChar < MESSAGE_SIZE * (currentBlock + 1); currentChar++) {
-			if (currentChar < initSize) {
-				string[currentChar - (currentBlock * MESSAGE_SIZE)] = input[currentChar];
+	for (int currentChar = currentBlock * MESSAGE_SIZE; currentChar < MESSAGE_SIZE * (currentBlock + 1); currentChar++) {
+		if (currentChar < initSize) {
+			if (this->isFile) {
+				file.read((char*)&string[currentChar - (currentBlock * MESSAGE_SIZE)], 1);
 			}
 			else {
-				string[currentChar - (currentBlock * MESSAGE_SIZE)] = 0;
+				string[currentChar - (currentBlock * MESSAGE_SIZE)] = input[currentChar];
 			}
 		}
-		formatMessage();
+		else {
+			string[currentChar - (currentBlock * MESSAGE_SIZE)] = 0;
+		}
 	}
-	currentBlock++;
+	formatMessage();
 	return string;
+}
+
+bool Message::hasNextBlock() {
+	std::cout << "Curr: " << currentBlock << " Num: " << numBlocks << std::endl;
+	return (currentBlock != numBlocks);
 }

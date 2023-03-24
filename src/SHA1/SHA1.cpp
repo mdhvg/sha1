@@ -2,15 +2,29 @@
 #include <iostream>
 #include <iomanip>
 
-SHA1::SHA1() {
+SHA1::SHA1(Message *message) {
 	Kt = new unsigned int[4] {0X5A827999, 0X6ED9EBA1, 0X8F1BBCDC, 0XCA62C1D6};
 	Hn = new unsigned int[5] {0X67452301, 0XEFCDAB89, 0X98BADCFE, 0X10325476, 0XC3D2E1F0};
 	A = Hn[0], B = Hn[1], C = Hn[2], D = Hn[3], E = Hn[4];
 	t = 0;
+	this->message = message;
 }
 
-unsigned int* SHA1::update(unsigned char* message) {
-	Wn = (unsigned int*)message;
+void SHA1::createDigest() {
+	while (message->hasNextBlock()) {
+		update();
+		resetState();
+		message->currentBlock++;
+	}
+}
+
+void SHA1::resetState() {
+	t = 0;
+	A = Hn[0], B = Hn[1], C = Hn[2], D = Hn[3], E = Hn[4];
+}
+
+void SHA1::update() {
+	Wn = (unsigned int*)message->getBlock();
 	while (t < 80) {
 		oneRound();
 		t++;
@@ -20,6 +34,9 @@ unsigned int* SHA1::update(unsigned char* message) {
 	Hn[2] += C;
 	Hn[3] += D;
 	Hn[4] += E;
+}
+
+unsigned int* SHA1::getDigest() {
 	return Hn;
 }
 
@@ -35,7 +52,9 @@ void SHA1::oneRound() {
 	C = circularLeftShift(B, 30);
 	B = A;
 	A = temp;
-	//std::cout << std::hex << std::setw(9) << A << ' ' << std::setw(9) << B << ' ' << std::setw(9) << C << ' ' << std::setw(9) << D << ' ' << std::setw(9) << E << ' ' << std::setw(9) << t << ' ' << std::setw(9) << quarter << std::endl;
+#ifdef DEBUG
+	PRINT(std::hex << std::setw(9) << A << ' ' << std::setw(9) << B << ' ' << std::setw(9) << C << ' ' << std::setw(9) << D << ' ' << std::setw(9) << E << ' ' << std::setw(9) << t << ' ' << std::setw(9) << quarter << std::endl);
+#endif // DEBUG
 }
 
 unsigned int SHA1::bitWiseFunction(unsigned int B, unsigned int C, unsigned int D) {
