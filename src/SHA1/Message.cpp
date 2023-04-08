@@ -77,6 +77,5 @@ unsigned char* Message::getBlock() {
 }
 
 bool Message::hasNextBlock() {
-	std::cout << "Curr: " << currentBlock << " Num: " << numBlocks << std::endl;
 	return (currentBlock != numBlocks);
 }
