@@ -8,9 +8,9 @@
 #define ASCII_ZERO 48
 #define ASCII_SMALL_A 97
 
-#ifdef DEBUG
+#ifdef DEBUG_SHA1
 #define PRINT(x) std::cout << x
-#endif // DEBUG
+#endif // DEBUG_SHA1
 
 #include <iostream>
 #include <string>
@@ -76,8 +76,6 @@ public:
 		unsigned int* update(unsigned char* Message);									: Performs 1 iteration and updates digest
 		unsigned int circularLeftShift(unsigned int num, int shift);					: Performs circular shift
 		unsigned int bitWiseFunction(unsigned int B, unsigned int C, unsigned int D);	: Performs bitwise function according to current iteration quarter on B,C,D
-		unsigned char* digestString();
-		unsigned char getHexChar(unsigned int charInt);
 		void oneRound();																: Performs one round of 80 on input block
 	*/
 
