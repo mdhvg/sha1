@@ -10,6 +10,8 @@
 
 #ifdef DEBUG_SHA1
 #define PRINT(x) std::cout << x
+#else
+#define PRINT(x)
 #endif // DEBUG_SHA1
 
 #include <iostream>

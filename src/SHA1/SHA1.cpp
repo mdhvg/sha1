@@ -52,9 +52,7 @@ void SHA1::oneRound() {
 	C = circularLeftShift(B, 30);
 	B = A;
 	A = temp;
-#ifdef DEBUG_SHA1
 	PRINT(std::hex << std::setw(9) << A << ' ' << std::setw(9) << B << ' ' << std::setw(9) << C << ' ' << std::setw(9) << D << ' ' << std::setw(9) << E << ' ' << std::setw(9) << t << ' ' << std::setw(9) << quarter << std::endl);
-#endif // DEBUG_SHA1
 }
 
 unsigned int SHA1::bitWiseFunction(unsigned int B, unsigned int C, unsigned int D) {

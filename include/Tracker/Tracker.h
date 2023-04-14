@@ -16,6 +16,8 @@
 
 #ifdef DEBUG_TRACKER
 #define PRINT(x) std::cout << x
+#else
+#define PRINT(x)
 #endif // DEBUG_TRACKER
 
 class Tracker

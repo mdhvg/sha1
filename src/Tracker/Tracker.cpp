@@ -22,11 +22,7 @@ Tracker::Tracker(char* path) {
 void Tracker::directoryHandler(char* path) {
     SetCurrentDirectoryA(path);
 
-#ifdef DEBUG_TRACKER
-    char* a = new char[MAX_PATH_SIZE];
-    GetCurrentDirectoryA(MAX_PATH_SIZE, a);
-    PRINT("Current Directory is: " << a << std::endl);
-#endif // DEBUG_TRACKER
+	PRINT("Current Directory is: " << std::filesystem::current_path() << std::endl);
 
     this->folder = path;
     this->ser = new Serializer(std::filesystem::path(std::string(this->folder)));
@@ -37,9 +33,7 @@ void Tracker::getFileNames() {
     std::vector<std::filesystem::path> files;
     for (const auto& file : std::filesystem::directory_iterator(this->folder)) {
 
-#ifdef DEBUG_TRACKER
-		std::cout << file.path() << std::endl;
-#endif // DEBUG_TRACKER
+		PRINT("Found File: " << file.path() << std::endl);
 
         files.push_back(file.path());
 	}
@@ -51,9 +45,7 @@ void Tracker::SaveFileHash(char* filename) {
     SHA1 context(&contents);
     context.createDigest();
 
-#ifdef DEBUG_TRACKER
     std::cout << digestString(context.getDigest()) << std::endl;
-#endif // DEBUG_TRACKER
 
     ser->update(filename.string(), context.getDigest());
     ser->serialize();        

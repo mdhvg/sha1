@@ -4,6 +4,8 @@
 
 #ifdef DEBUG_TRACKER
 #define PRINT(x) std::cout << x
+#else
+#define PRINT(x)
 #endif // DEBUG_TRACKER
 
 Serializer::~Serializer() {
@@ -15,13 +17,14 @@ std::unordered_map <std::filesystem::path, unsigned int*> Serializer::deserializ
 	std::filesystem::path hashFile = this->directory / HASH_FILE;
 #ifdef DEBUG_TRACKER
 	PRINT("Hash file is: " << hashFile << std::endl);
-#endif // DEBUG_TRACKER
+
 	if (!std::filesystem::exists(hashFile)) {
 
 #ifdef DEBUG_TRACKER
 		PRINT("Hash file does not exist\n");
-#endif // DEBUG_TRACKER
-		std::fstream file(hashFile.c_str(), std::ios::out);
+		PRINT("Creating hash file\n");
+
+		file.open(hashFile, std::ios::out);
 		file.close();
 		return hashes;
 	}
@@ -29,9 +32,7 @@ std::unordered_map <std::filesystem::path, unsigned int*> Serializer::deserializ
 	file = std::fstream(hashFile.c_str(), std::ios::binary | std::ios::in | std::ios::out);
 	if (!file.is_open()) {
 
-#ifdef DEBUG_TRACKER
-		PRINT("Could not open hash file\n");
-#endif // DEBUG_TRACKER
+	int nameSize = 0;
 
 		return hashes;
 	}
@@ -39,7 +40,8 @@ std::unordered_map <std::filesystem::path, unsigned int*> Serializer::deserializ
 	while (!file.eof()) {
 		int nameSize;
 		file.read((char*)&nameSize, sizeof(int));
-		std::string filename(nameSize, ' ');
+		PRINT("Reading " << nameSize << " bytes of string\n");
+		std::string filename(nameSize, '\0');
 		file.read(&filename[0], nameSize);
 		unsigned int* hash = new unsigned int[5];
 		file.read((char*)hash, sizeof(int) * 5);
@@ -59,22 +61,23 @@ void Serializer::serialize() {
 }
 
 void Serializer::update(std::string filename, unsigned int* hn) {
-#ifdef DEBUG_TRACKER
+	changed = new std::vector<std::string>;
+
 	PRINT("Changed files are: \n");
-#endif // DEBUG_TRACKER
-	auto it = fileHashes.find(filename);
-	if (it == fileHashes.end()) {
-		fileHashes[filename] = new unsigned int[5];
+
+	if (fileHashes.find(filename) == fileHashes.end()) {
+		fileHashes[filename] = new unsigned int[5] {0};
 	}
 	for (int i = 0; i < 5; i++) {
 		if (fileHashes[filename][i] != hn[i]) {
-#ifdef DEBUG_TRACKER
-		PRINT(filename << std::endl);
-#endif // DEBUG_TRACKER
+			change = true;
 			fileHashes[filename][i] = hn[i];
 			changed.push_back(filename);
 		}
 	}
+	if (change) {
+		PRINT(filename << " Has changed" << std::endl);
+		changed->push_back(filename);
 }
 
 std::vector <std::string> Serializer::getChangedFilenames() {
